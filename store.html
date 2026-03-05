@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store - Krupuk Mie Premium</title>
+    <meta name="description" content="Beli Krupuk Mie Premium mentah siap goreng. Tersedia ukuran 500g dan 1Kg. Cepat mekar, gurih, dan renyah.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">KrupukMie.</a>
+            <nav class="navbar">
+                <ul class="nav-links">
+                    <li><a href="index.html#home">Home</a></li>
+                    <li><a href="index.html#about">About Us</a></li>
+                    <li><a href="index.html#product">Product</a></li>
+                    <li><a href="store.html" style="color: var(--primary-yellow); font-weight: 700;">Store</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                    
+                    <li>
+                        <a href="checkout.html" class="nav-cart" aria-label="Keranjang Belanja">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="cart-badge" id="cartBadge">0</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <button class="menu-toggle" aria-label="Buka menu navigasi"><i class="fas fa-bars"></i></button>
+        </div>
+    </header>
+
+    <main style="padding-top: 100px;"> <section id="product-detail" class="store-hero">
+            <div class="container store-grid">
+                <div class="product-gallery">
+                    <img src="assets/krupuk-mentah-pack.webp" alt="Krupuk Mie Mentah Kemasan" class="main-image" id="mainImage">
+                    <div class="thumbnail-row">
+                        <img src="assets/krupuk-mentah-pack.webp" alt="Kemasan" class="thumb active">
+                        <img src="assets/krupuk-matang.webp" alt="Matang" class="thumb">
+                        <img src="assets/krupuk-tekstur.webp" alt="Tekstur" class="thumb">
+                    </div>
+                </div>
+
+                <div class="product-info">
+                    <div class="badges">
+                        <span class="badge-best">Terlaris</span>
+                        <span class="badge-rating"><i class="fas fa-star"></i> 4.9 (120 Ulasan)</span>
+                    </div>
+                    <h1>Krupuk Mie Mentah Premium (Siap Goreng)</h1>
+                    <p class="product-desc">Krupuk mie kuning tradisional dengan resep otentik. Mengembang sempurna saat digoreng, menghasilkan tekstur renyah dan rasa gurih yang pas untuk teman makan atau camilan keluarga.</p>
+                    
+                    <h2 class="product-price" id="displayPrice">Rp 15.000</h2>
+
+                    <div class="variant-selection">
+                        <h3>Pilih Ukuran Kemasan:</h3>
+                        <div class="variant-cards">
+                            <label class="variant-card">
+                                <input type="radio" name="ukuran" value="500g" data-price="15000" checked>
+                                <div class="card-content">
+                                    <span class="weight">500 Gram</span>
+                                    <span class="price">Rp 15.000</span>
+                                </div>
+                            </label>
+                            <label class="variant-card">
+                                <input type="radio" name="ukuran" value="1kg" data-price="28000">
+                                <div class="card-content">
+                                    <span class="weight">1 Kilogram</span>
+                                    <span class="price">Rp 28.000</span>
+                                    <span class="save-badge">Lebih Hemat</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <div class="qty-selector">
+                            <button type="button" class="qty-btn minus">-</button>
+                            <input type="number" id="qty" value="1" min="1">
+                            <button type="button" class="qty-btn plus">+</button>
+                        </div>
+                        <button class="btn-primary add-to-cart-btn"><i class="fas fa-cart-shopping"></i> Pesan Sekarang</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="value-bar">
+            <div class="container value-flex">
+                <div class="value-item"><i class="fas fa-stopwatch"></i> Mekar 3 Detik</div>
+                <div class="value-item"><i class="fas fa-certificate"></i> Mengembang Sempurna</div>
+                <div class="value-item"><i class="fas fa-box-open"></i> Kemasan Kedap Udara</div>
+                <div class="value-item"><i class="fas fa-calendar-check"></i> Tahan Lama</div>
+            </div>
+        </div>
+
+        <section id="cooking-guide" class="cooking-section">
+            <div class="container text-center">
+                <h2>Cara Menggoreng Sempurna</h2>
+                <p>Tidak perlu dijemur! Langsung goreng dan nikmati kerenyahannya.</p>
+                
+                <div class="step-grid">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <img src="assets/step-minyak.webp" alt="Panaskan Minyak">
+                        <h3>Panaskan Minyak</h3>
+                        <p>Gunakan minyak yang cukup banyak. Panaskan dengan api sedang hingga benar-benar panas.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <img src="assets/step-goreng.webp" alt="Masukkan Krupuk">
+                        <h3>Masukkan Krupuk</h3>
+                        <p>Masukkan krupuk satu per satu. Krupuk akan langsung mengembang mekar dalam 3-5 detik!</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <img src="assets/step-tiriskan.webp" alt="Angkat & Tiriskan">
+                        <h3>Angkat & Tiriskan</h3>
+                        <p>Segera angkat saat krupuk sudah menguning keemasan. Tiriskan minyaknya dan siap disajikan.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="gallery" class="gallery-section">
+            <div class="container text-center">
+                <h2>Cocok Untuk Segala Suasana</h2>
+                <div class="masonry-grid">
+                    <img src="assets/serve-asinan.webp" alt="Disajikan dengan Asinan">
+                    <img src="assets/serve-bakso.webp" alt="Pendamping Bakso">
+                    <img src="assets/serve-cemilan.webp" alt="Camilan Santai">
+                    <img src="assets/serve-pecel.webp" alt="Teman Makan Pecel">
+                </div>
+            </div>
+        </section>
+
+        <section id="reviews" class="review-section">
+            <div class="container">
+                <h2 class="text-center">Apa Kata Pelanggan Kami?</h2>
+                <div class="review-grid">
+                    <div class="review-card">
+                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        <p class="review-text">"Gampang banget digorengnya, langsung mekar gede-gede! Rasanya juga gurih pas, nggak berlebihan. Anak-anak di rumah pada suka."</p>
+                        <p class="reviewer-name">- Ibu Siti, Jakarta</p>
+                    </div>
+                    <div class="review-card">
+                        <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        <p class="review-text">"Sengaja beli yang 1kg buat stok. Packingnya aman banget berlapis-lapis. Udah nyoba goreng dan emang beneran nggak perlu dijemur lagi."</p>
+                        <p class="reviewer-name">- Budi, Semarang</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="cart-overlay" id="cartOverlay"></div>
+
+    <div class="bottom-sheet-container" id="bottomSheetCart">
+        
+        <div class="sheet-panel" id="sheetPanel">
+            <div class="sheet-header">
+                <h3>Keranjang Saya</h3>
+                <button class="close-sheet-btn" id="closeSheetBtn" aria-label="Tutup Keranjang"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="sheet-body" id="miniCartItems">
+                </div>
+        </div>
+
+        <div class="sheet-footer" id="sheetFooterToggle">
+            <div class="sticky-price-wrap">
+                <span class="label">Total <i class="fas fa-chevron-up toggle-icon" id="toggleIcon"></i></span>
+                <span class="price" id="miniCartTotal">Rp 0</span>
+            </div>
+            <a href="checkout.html" class="btn-primary btn-checkout-nav">Checkout</a>
+        </div>
+        
+    </div>
+    
+
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 KrupukMie Premium. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js" defer></script>
+</body>
+</html>

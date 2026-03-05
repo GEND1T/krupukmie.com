@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Krupuk Mie Premium</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-light"> <header class="header scrolled" style="position: static; padding: 1rem 0;"> 
+        <div class="container nav-container" style="justify-content: space-between;">
+            <a href="store.html" class="logo">KrupukMie.</a>
+            <div class="secure-badge" style="color: var(--text-muted); font-weight: 500; font-size: 0.9rem;">
+                <i class="fas fa-lock" style="color: #10B981;"></i> Checkout Aman
+            </div>
+        </div>
+    </header>
+
+    <main class="checkout-page">
+        <div class="container">
+            <div class="checkout-grid">
+                
+                <div class="checkout-form-section">
+                    
+                    <div class="checkout-box">
+                        <h2 class="box-title">1. Informasi Kontak</h2>
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label for="email">Alamat Email</label>
+                                <input type="email" id="email" placeholder="Untuk resi & notifikasi" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="phone">Nomor WhatsApp</label>
+                                <input type="tel" id="phone" placeholder="Contoh: 081234567890" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-box">
+                        <h2 class="box-title">2. Alamat Pengiriman</h2>
+                        <div class="input-group">
+                            <label for="fullname">Nama Penerima</label>
+                            <input type="text" id="fullname" placeholder="Nama Lengkap" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label for="provinsi">Provinsi</label>
+                                <select id="provinsi" required>
+                                    <option value="" disabled selected>Pilih Provinsi...</option>
+                                    <option value="jawa-tengah">Jawa Tengah</option>
+                                    <option value="jawa-barat">Jawa Barat</option>
+                                    <option value="dki-jakarta">DKI Jakarta</option>
+                                    </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="kota">Kota / Kabupaten</label>
+                                <select id="kota" disabled required>
+                                    <option value="" disabled selected>Pilih Kota/Kab...</option>
+                                    </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label for="kecamatan">Kecamatan</label>
+                                <select id="kecamatan" disabled required>
+                                    <option value="" disabled selected>Pilih Kecamatan...</option>
+                                    </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="kodepos">Kode Pos</label>
+                                <input type="text" id="kodepos" placeholder="Contoh: 50123" required>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="alamatLengkap">Alamat Lengkap (Jalan, RT/RW, Patokan)</label>
+                            <textarea id="alamatLengkap" rows="3" placeholder="Contoh: Jl. Merdeka No. 10, RT 01/RW 02, Samping Masjid Besar..." required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="checkout-box">
+                        <h2 class="box-title">3. Pengiriman</h2>
+                        <div class="shipping-options">
+                            <label class="shipping-card">
+                                <input type="radio" name="kurir" value="reguler" checked>
+                                <div class="shipping-content">
+                                    <div class="shipping-info">
+                                        <span class="kurir-name">JNE Reguler</span>
+                                        <span class="kurir-etd">Estimasi 2-3 Hari</span>
+                                    </div>
+                                    <span class="kurir-price">Rp 15.000</span>
+                                </div>
+                            </label>
+                            </div>
+                    </div>
+
+                </div>
+
+                <div class="order-summary-section">
+                    <div class="summary-box sticky-summary">
+                        <h2 class="box-title">Ringkasan Pesanan</h2>
+                        
+                        <div id="checkoutCartItems" class="checkout-cart-items">
+                            <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Memuat keranjang...</p>
+                        </div>
+
+                        <hr class="summary-divider">
+
+                        <div class="summary-calc">
+                            <div class="calc-row">
+                                <span>Subtotal Produk</span>
+                                <span id="checkoutSubtotal">Rp 0</span>
+                            </div>
+                            <div class="calc-row">
+                                <span>Ongkos Kirim</span>
+                                <span id="checkoutOngkir">Rp 15.000</span> </div>
+                            <div class="calc-row total-row">
+                                <span>Total Tagihan</span>
+                                <span id="checkoutTotal">Rp 0</span>
+                            </div>
+                        </div>
+
+                        <button id="btnPayNow" class="btn-primary w-100 mt-2" style="width: 100%; font-size: 1.1rem; padding: 1rem;">
+                            <i class="fas fa-shield-halved"></i> Lanjut Pembayaran
+                        </button>
+                        
+                        <p class="secure-text">
+                            <i class="fas fa-lock"></i> Pembayaran aman dan terenkripsi.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
