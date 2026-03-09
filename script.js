@@ -603,7 +603,7 @@ if (checkoutPage) {
     let selectedProvince = '';
     let selectedRegency = '';
 
-    // A. FITUR GPS (REVERSE GEOCODING)
+    // A. FITUR GPS (REVERSE GEOCODING) + SIMPAN KOORDINAT
     btnCurrentLocation.addEventListener('click', () => {
         if (!navigator.geolocation) {
             alert("Browser Anda tidak mendukung fitur lokasi GPS.");
@@ -620,16 +620,19 @@ if (checkoutPage) {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
+                    // SIMPAN KOORDINAT KE KANTONG RAHASIA
+                    document.getElementById('hiddenLat').value = lat;
+                    document.getElementById('hiddenLon').value = lon;
+                    
                     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
                     const data = await response.json();
                     const address = data.address;
                     
-                    // PERBAIKAN: Prioritaskan Kode Pos, baru Kecamatan (city_district), baru Kota
                     const queryForBiteship = address.postcode || address.city_district || address.town || address.city;
                     
                     if(queryForBiteship) {
-                        inputSearchLocation.value = queryForBiteship; // Tampilkan di kotak pencarian
-                        searchBiteshipDirectly(queryForBiteship);     // Tembak Biteship pakai Kodepos/Kecamatan
+                        inputSearchLocation.value = queryForBiteship; 
+                        searchBiteshipDirectly(queryForBiteship);     
                     } else {
                         alert("Gagal mendeteksi area Anda. Silakan cari manual.");
                     }
@@ -842,6 +845,8 @@ if (checkoutPage) {
         const postalCode = kodeposHidden.value;
         const areaName = textSelectedLocation.textContent;
         const addressDetail = document.getElementById('alamatLengkap').value.trim();
+        const lat = document.getElementById('hiddenLat').value;
+        const lon = document.getElementById('hiddenLon').value;
 
         if (!fullname || !phone || !areaId || !addressDetail) {
             alert('Mohon lengkapi data, termasuk memilih Kecamatan dari fitur pencarian.');
@@ -851,7 +856,8 @@ if (checkoutPage) {
         // Simpan ke Cache Browser (LocalStorage)
         const addressData = {
             name: fullname, phone: phone, areaId: areaId, 
-            postalCode: postalCode, areaName: areaName, addressDetail: addressDetail
+            postalCode: postalCode, areaName: areaName, addressDetail: addressDetail,
+            lat: lat, lon: lon // <--- INI YANG BARU
         };
         localStorage.setItem('krupukmie_user_address', JSON.stringify(addressData));
 
@@ -880,40 +886,113 @@ if (checkoutPage) {
 
     });
 
+
+    // ========================================================
+    // LOGIKA TAB PENGIRIMAN VS AMBIL DI TOKO
+    // ========================================================
+    const tabDelivery = document.getElementById('tabDelivery');
+    const tabPickup = document.getElementById('tabPickup');
+    const viewDelivery = document.getElementById('viewDelivery');
+    const viewPickup = document.getElementById('viewPickup');
+
+    if (tabDelivery && tabPickup) {
+        tabDelivery.addEventListener('click', () => {
+            tabDelivery.style.color = '#EF4444';
+            tabDelivery.style.borderBottom = '2px solid #EF4444';
+            tabDelivery.style.fontWeight = '600';
+
+            tabPickup.style.color = '#6B7280';
+            tabPickup.style.borderBottom = '2px solid transparent';
+            tabPickup.style.fontWeight = '500';
+
+            viewDelivery.style.display = 'block';
+            viewPickup.style.display = 'none';
+        });
+
+        tabPickup.addEventListener('click', () => {
+            tabPickup.style.color = '#EF4444';
+            tabPickup.style.borderBottom = '2px solid #EF4444';
+            tabPickup.style.fontWeight = '600';
+
+            tabDelivery.style.color = '#6B7280';
+            tabDelivery.style.borderBottom = '2px solid transparent';
+            tabDelivery.style.fontWeight = '500';
+
+            viewPickup.style.display = 'block';
+            viewDelivery.style.display = 'none';
+        });
+    }
+
+    // LOGIKA PEMILIHAN CABANG (AMBIL DI TOKO)
+    const pickupRadios = document.querySelectorAll('input[name="pickupStore"]');
+    pickupRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Beri efek visual pada radio button yang dipilih
+            document.querySelectorAll('input[name="pickupStore"] + .shipping-content .radio-custom').forEach(el => {
+                el.style.background = 'transparent';
+                el.style.borderColor = '#D1D5DB';
+            });
+            const customRadio = this.nextElementSibling.querySelector('.radio-custom');
+            customRadio.style.background = '#EF4444';
+            customRadio.style.borderColor = '#EF4444';
+            this.nextElementSibling.style.borderColor = '#EF4444';
+
+            // Ubah UI Utama
+            const namaToko = this.getAttribute('data-name');
+            document.getElementById('displayShipping').innerHTML = `<strong style="color:#1F2937;"><i class="fas fa-store"></i> AMBIL DI TOKO</strong><br><span style="font-size:0.8rem; color:#6B7280;">${namaToko}</span>`;
+            document.getElementById('displayShippingCost').textContent = "Rp 0";
+            
+            // Set Ongkir jadi 0 dan hitung ulang Grand Total
+            ongkirAmount = 0;
+            updateGrandTotal();
+            
+            setTimeout(() => {
+                document.getElementById('sheetShipping').classList.remove('expanded');
+                document.getElementById('checkoutOverlay').classList.remove('active');
+            }, 300);
+        });
+    });
+
     
-    // --- E. LOGIKA OPSI PENGIRIMAN DINAMIS (BITESHIP RATES API) ---
+    // --- E. LOGIKA OPSI PENGIRIMAN DINAMIS & KATEGORISASI (ALA SHOPEE) ---
     async function fetchShippingRates(areaId, postalCode) {
         const container = document.getElementById('shippingOptionsContainer');
-        container.innerHTML = `<p style="text-align: center; padding: 2rem 0; color: #6B7280;"><i class="fas fa-spinner fa-spin"></i> Menghitung ongkir terbaik...</p>`;
+        container.innerHTML = `<p style="text-align: center; padding: 2rem 0; color: #6B7280;"><i class="fas fa-spinner fa-spin"></i> Memilah kurir terbaik untuk Anda...</p>`;
 
-        // 1. HITUNG BERAT KERANJANG OTOMATIS
+        // 1. HITUNG BERAT KERANJANG
         let cart = JSON.parse(localStorage.getItem('krupukCart')) || [];
         let totalWeightGram = 0;
         let totalValue = 0;
 
         cart.forEach(item => {
-            // Logika Pendeteksi Berat: (Bisa Anda sesuaikan dengan nama varian Anda)
-            let itemWeight = 500; // Default 500 gram
+            let itemWeight = 500; 
             if (item.variant && item.variant.includes('1kg')) itemWeight = 1000;
             else if (item.variant && item.variant.includes('500g')) itemWeight = 500;
             else if (item.variant && item.variant.includes('250g')) itemWeight = 250;
             
             totalWeightGram += (itemWeight * item.qty);
-            totalValue += item.total; // Total harga barang untuk asuransi (opsional)
+            totalValue += item.total; 
         });
 
-        // Ekspedisi biasanya menetapkan berat minimal 1 kg (1000 gram)
         if (totalWeightGram < 1000) totalWeightGram = 1000;
 
-        // 2. SIAPKAN DATA UNTUK BITESHIP (KODE POS + BANYAK KURIR)
+        // 2. PAYLOAD UNTUK BITESHIP (Kita panggil Gojek/Grab juga untuk memancing Instan)
+        // 2. PAYLOAD UNTUK BITESHIP (Kombinasi Kodepos & Koordinat)
+        // Ambil data alamat dari cache untuk mengecek apakah ada koordinat GPS
+        const savedAddress = JSON.parse(localStorage.getItem('krupukmie_user_address')) || {};
+        
         const payload = {
             origin_postal_code: 52194, 
+            
+            // TITIK KOORDINAT TOKO ANDA (Wajib untuk layanan Instan)
+            // Ganti angka ini dengan titik koordinat asli toko KrupukMie di Tegal
+            origin_latitude: -6.947171048679825,  
+            origin_longitude: 109.12651595025321, 
+
+            
+            
             destination_postal_code: parseInt(postalCode), 
-            
-            // PERBAIKAN 1: Panggil semua kurir ekspedisi standar yang sudah Anda On-kan
-            // (Kita kecualikan kurir instan seperti gojek/grab dulu karena butuh koordinat lat/long)
-            couriers: "jne,sicepat,jnt,idexpress,tiki,ninja,lion,anteraja,pos,wahana,rpx,sap", 
-            
+            couriers: "jne,sicepat,jnt,idexpress,tiki,ninja,lion,anteraja,pos,wahana,rpx,sap,gojek,grab,lalamove", 
             items: [
                 {
                     name: "Pesanan KrupukMie",
@@ -925,6 +1004,12 @@ if (checkoutPage) {
                 }
             ]
         };
+
+        // Jika pembeli menggunakan tombol GPS, masukkan koordinat mereka ke payload
+        if (savedAddress.lat && savedAddress.lon) {
+            payload.destination_latitude = parseFloat(savedAddress.lat);
+            payload.destination_longitude = parseFloat(savedAddress.lon);
+        }
 
         try {
             const response = await fetch("https://api.biteship.com/v1/rates/couriers", {
@@ -938,41 +1023,134 @@ if (checkoutPage) {
 
             const data = await response.json();
 
-            // 4. TAMPILKAN HASIL KE LAYAR
             if (data.success && data.pricing.length > 0) {
                 
                 // ========================================================
-                // PERBAIKAN 2: URUTKAN HARGA DARI YANG TERMURAH!
+                // 3. ALGORITMA KATEGORISASI (THE MAGIC LIES HERE)
                 // ========================================================
-                data.pricing.sort((a, b) => a.price - b.price);
-
-                let html = `<div style="background: #ECFDF5; border: 1px solid #10B981; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; color: #047857; font-size: 0.85rem; font-weight: 600;">
-                                <i class="fas fa-balance-scale"></i> Total Berat Paket: ${(totalWeightGram/1000).toFixed(1)} kg
-                            </div>`;
                 
-                data.pricing.forEach((rate, index) => {
-                    // Karena array sudah diurutkan, index 0 PASTI harga yang paling murah se-Indonesia!
-                    const isCheapest = index === 0;
-                    const badgeHtml = isCheapest ? `<span style="background: #FEF3C7; color: #D97706; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 8px; vertical-align: middle;">TERMURAH</span>` : '';
+                // Siapkan wadah untuk masing-masing kategori
+                const groupedRates = {
+                    instan: { title: "Instan & Same Day", desc: "Tiba di hari yang sama", icon: "fa-motorcycle", data: [], disabledMsg: "" },
+                    reguler: { title: "Reguler", desc: "Harga & Waktu seimbang", icon: "fa-truck", data: [], disabledMsg: "" },
+                    ekonomi: { title: "Hemat / Ekonomi", desc: "Harga lebih terjangkau", icon: "fa-piggy-bank", data: [], disabledMsg: "" },
+                    kargo: { title: "Kargo", desc: "Khusus barang berat/besar", icon: "fa-truck-loading", data: [], disabledMsg: "" }
+                };
 
-                    html += `
-                        <label class="shipping-card" style="display: block; margin-bottom: 12px; cursor: pointer;">
-                            <input type="radio" name="kurirRadio" value="${rate.company}-${rate.type}" data-name="${rate.courier_name} ${rate.courier_service_name}" data-price="${rate.price}" style="display: none;">
-                            <div class="shipping-content" style="padding: 1rem; border: 1px solid ${isCheapest ? '#F59E0B' : '#E5E7EB'}; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: ${isCheapest ? '#FFFBEB' : '#fff'}; transition: 0.2s;">
-                                <div>
-                                    <strong style="display: block; color: #1F2937; font-size: 0.95rem; text-transform: uppercase;">${rate.company} - ${rate.type} ${badgeHtml}</strong>
-                                    <span style="font-size: 0.75rem; color: #6B7280; display: block; margin-top: 2px;">Estimasi ${rate.duration}</span>
-                                    <span style="font-size: 0.7rem; color: #9CA3AF; display: block;">${rate.description || 'Layanan Reguler'}</span>
-                                </div>
-                                <strong style="color: #EF4444; font-size: 1rem;">${formatRupiahCheckout(rate.price)}</strong>
-                            </div>
-                        </label>
-                    `;
+                // Filter & Sortir ke wadah yang tepat
+                data.pricing.forEach(rate => {
+                    const typeStr = rate.type.toLowerCase();
+                    const companyStr = rate.company.toLowerCase();
+                    const serviceName = rate.courier_service_name.toLowerCase();
+
+                    // Filter Instan
+                    if (typeStr.includes('instant') || typeStr.includes('same') || companyStr.includes('gojek') || companyStr.includes('grab') || companyStr.includes('lalamove')) {
+                        groupedRates.instan.data.push(rate);
+                    } 
+                    // Filter Kargo (JTR, Gokil, Trucking, Cargo)
+                    else if (typeStr.includes('cargo') || typeStr.includes('trucking') || typeStr.includes('jtr') || serviceName.includes('gokil') || serviceName.includes('kargo')) {
+                        groupedRates.kargo.data.push(rate);
+                    } 
+                    // Filter Ekonomi (Halu, Eco, Economy, OKE)
+                    else if (typeStr.includes('economy') || typeStr.includes('eco') || typeStr.includes('oke') || serviceName.includes('halu') || serviceName.includes('hemat')) {
+                        groupedRates.ekonomi.data.push(rate);
+                    } 
+                    // Sisanya masuk Reguler
+                    else {
+                        groupedRates.reguler.data.push(rate);
+                    }
                 });
+                if (totalWeightGram < 5000) {
+                    groupedRates.kargo.disabledMsg = "Pesanan belum memenuhi berat minimum kargo (5kg).";
+                    groupedRates.kargo.data = []; 
+                }
                 
+                // LOGIKA CERDAS UNTUK KURIR INSTAN
+                if (!savedAddress.lat || !savedAddress.lon) {
+                    // Jika pembeli tidak pakai GPS, kunci layanan instan
+                    groupedRates.instan.disabledMsg = "Gunakan tombol GPS (Gunakan Lokasi Saat Ini) di menu alamat untuk mengaktifkan kurir Instan.";
+                    groupedRates.instan.data = [];
+                } else if (groupedRates.instan.data.length === 0) {
+                    // Jika pakai GPS tapi jaraknya lebih dari 40km (aturan Gojek/Grab)
+                    groupedRates.instan.disabledMsg = "Jarak melebihi batas pengiriman Instan (Maks ~40km).";
+                }
+                
+                // ========================================================
+                // 4. MERENDER UI ACCORDION ALA SHOPEE
+                // ========================================================
+                let html = `<div style="background: #ECFDF5; border: 1px solid #10B981; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; color: #047857; font-size: 0.85rem; font-weight: 600;">
+                                <i class="fas fa-balance-scale"></i> Total Berat: ${(totalWeightGram/1000).toFixed(1)} kg
+                            </div>`;
+
+                // Urutan render layar: Instan -> Reguler -> Ekonomi -> Kargo
+                const renderOrder = ['instan', 'reguler', 'ekonomi', 'kargo'];
+
+                renderOrder.forEach(key => {
+                    const group = groupedRates[key];
+                    
+                    if (group.data.length > 0 && !group.disabledMsg) {
+                        // Urutkan harga termurah di kategori ini
+                        group.data.sort((a, b) => a.price - b.price);
+                        const cheapest = group.data[0];
+
+                        // KARTU AKTIF (Bisa di-klik untuk buka daftar kurir)
+                        html += `
+                        <div class="category-card" style="margin-bottom: 12px; border: 1px solid #E5E7EB; border-radius: 8px; background: #fff; overflow: hidden;">
+                            <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #F9FAFB;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
+                                <div>
+                                    <strong style="color: #1F2937; font-size: 0.95rem; display: block;"><i class="fas ${group.icon}" style="margin-right: 8px; color: #6B7280;"></i> ${group.title}</strong>
+                                    <span style="font-size: 0.75rem; color: #6B7280; margin-top: 2px;">Mulai dari <span style="color: #EF4444; font-weight: 600;">${formatRupiahCheckout(cheapest.price)}</span></span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 0.75rem; color: #3B82F6;">Pilih Kurir</span>
+                                    <i class="fas fa-chevron-down" style="color: #9CA3AF;"></i>
+                                </div>
+                            </div>
+                            
+                            <div style="padding: 0 15px; display: none; border-top: 1px solid #E5E7EB;">
+                        `;
+
+                        group.data.forEach((rate, index) => {
+                            const isCheapest = index === 0;
+                            const badgeHtml = isCheapest ? `<span style="background: #FEF3C7; color: #D97706; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 8px;">TERMURAH</span>` : '';
+
+                            html += `
+                                <label style="display: block; padding: 12px 0; border-bottom: 1px solid #F3F4F6; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; flex: 1;">
+                                        <input type="radio" name="kurirRadio" value="${rate.company}-${rate.type}" data-name="${rate.courier_name} ${rate.courier_service_name} (${group.title})" data-price="${rate.price}" style="margin-right: 12px; width: 18px; height: 18px; accent-color: #EF4444;">
+                                        <div>
+                                            <strong style="display: block; color: #1F2937; font-size: 0.9rem;">${rate.company.toUpperCase()} - ${rate.courier_service_name} ${badgeHtml}</strong>
+                                            <span style="font-size: 0.75rem; color: #6B7280;">Estimasi ${rate.duration}</span>
+                                        </div>
+                                    </div>
+                                    <strong style="color: #EF4444; font-size: 0.95rem;">${formatRupiahCheckout(rate.price)}</strong>
+                                </label>
+                            `;
+                        });
+
+                        html += `
+                            </div>
+                        </div>
+                        `;
+                    } else {
+                        // KARTU TERKUNCI / DISABLED (Ala Shopee)
+                        html += `
+                        <div class="category-card disabled" style="margin-bottom: 12px; border: 1px solid #E5E7EB; border-radius: 8px; background: #F9FAFB; opacity: 0.7;">
+                            <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong style="color: #9CA3AF; font-size: 0.95rem;"><i class="fas ${group.icon}" style="margin-right: 8px;"></i> ${group.title}</strong>
+                                    <span style="display: block; font-size: 0.75rem; color: #EF4444; margin-top: 4px;">${group.disabledMsg || 'Layanan Tidak Tersedia'}</span>
+                                </div>
+                                <i class="fas fa-lock" style="color: #D1D5DB;"></i>
+                            </div>
+                        </div>
+                        `;
+                    }
+                });
+
                 container.innerHTML = html;
 
-                // 5. PASANG AKSI SAAT KURIR DIPILIH OLEH PEMBELI
+                // 5. PASANG EVENT LISTENER PADA SEMUA RADIO BUTTON
                 const kurirRadios = container.querySelectorAll('input[name="kurirRadio"]');
                 kurirRadios.forEach(radio => {
                     radio.addEventListener('change', function() {
@@ -985,13 +1163,16 @@ if (checkoutPage) {
                         ongkirAmount = hargaOngkir;
                         updateGrandTotal();
                         
-                        document.getElementById('sheetShipping').classList.remove('expanded');
-                        document.getElementById('checkoutOverlay').classList.remove('active');
+                        // Jeda sedikit agar pengguna melihat efek klik sebelum ditutup
+                        setTimeout(() => {
+                            document.getElementById('sheetShipping').classList.remove('expanded');
+                            document.getElementById('checkoutOverlay').classList.remove('active');
+                        }, 250);
                     });
                 });
 
             } else {
-                container.innerHTML = `<div style="padding: 20px; text-align: center; color: #EF4444; background: #FEF2F2; border-radius: 8px;">Maaf, rute ini belum didukung.</div>`;
+                container.innerHTML = `<div style="padding: 20px; text-align: center; color: #EF4444;">Maaf, rute ini belum didukung.</div>`;
             }
         } catch (error) {
             console.error("Fetch Error:", error);
@@ -1160,7 +1341,7 @@ if (checkoutPage) {
 // --- KONFIGURASI BITESHIP ---
 // CATATAN: Untuk keamanan level produksi, API Key sebaiknya tidak ditaruh di Frontend. 
 // Namun untuk tahap ini, kita gunakan langsung agar UI berfungsi.
-const BITESHIP_API_KEY = 'biteship_test.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoia3J1cHVrbWllLiIsInVzZXJJZCI6IjY5YWQzOTdmMjZiMDY3YzIzZDIxNGQ5MiIsImlhdCI6MTc3Mjk2MDM2OX0.VMLO13dSbYr-MZSQHvwzmBrDuE483zdazn2KCDwi-_Y'; 
+const BITESHIP_API_KEY = 'iteship_test.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoia3J1cHVrbWllLiIsInVzZXJJZCI6IjY5YWQzOTdmMjZiMDY3YzIzZDIxNGQ5MiIsImlhdCI6MTc3Mjk2MDM2OX0.VMLO13dSbYr-MZSQHvwzmBrDuE483zdazn2KCDwi-_Y'; 
 
 // --- 1. LOCAL STORAGE (MENYIMPAN DATA SAAT REFRESH) ---
 document.addEventListener('DOMContentLoaded', () => {
