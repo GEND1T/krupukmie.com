@@ -291,14 +291,11 @@ section {
 /* --- Efek Remahan Jatuh (CSS Trick) --- */
 .crumbs-falling {
     position: absolute;
-    bottom: -80px;
-    left: 50%;
+    bottom: 115px;
+    left: 5%;
     width: 60px;
     height: 150px;
     /* Membuat pola titik-titik (remahan) menggunakan gradient */
-    background-image: 
-        radial-gradient(circle, var(--primary-yellow) 20%, transparent 20%),
-        radial-gradient(circle, var(--primary-hover) 30%, transparent 30%);
     background-size: 12px 12px, 8px 8px;
     background-position: 0 0, 25px 30px;
     opacity: 0.7;
@@ -1052,7 +1049,7 @@ section {
    ========================================= */
    .store-hero {
     padding: 3rem 0;
-    background-color: var(--bg-white);
+    background-color: #f9f9f9;
 }
 
 .store-grid {
@@ -1614,12 +1611,13 @@ section {
 /* =========================================
    29. TIKTOK-STYLE CHECKOUT UI
    ========================================= */
-   body { background-color: #fefefe; } /* Warna latar belakang netral ala TikTok */
+   body { background-color: #fffffb; } /* Warna latar belakang netral ala TikTok */
 
    .mobile-checkout-page {
        padding: 10px 0 0 0;
        max-width: 600px; /* Optimal untuk mobile, di desktop akan tertengah */
        margin: 0 auto;
+       background-color: #f9f9f9
    }
    
    .checkout-section {
@@ -1958,7 +1956,8 @@ section {
 }
 
 /* Panel Keranjang (Di atas Sticky Bar) */
-.sheet-panel {
+
+.sheet-panel, .sheet-panel-1 {
     background-color: var(--bg-white);
     border-radius: 20px 20px 0 0;
     /* Default: Tinggi 0 (disembunyikan) */
@@ -2018,7 +2017,7 @@ section {
         max-width: 1000px;
         display: grid;
         grid-template-columns: 1.5fr 1fr; /* Kiri lebih lebar dari kanan */
-        gap: 2rem;
+        gap: 1rem;
         align-items: start;
         padding-top: 2rem;
     }
