@@ -271,7 +271,7 @@ async function requestPickupN8n(invoiceLabel) {
     if (!confirm(`Panggil kurir Biteship sekarang untuk pesanan ${invoiceLabel}? Pastikan barang sudah siap dipacking!`)) return;
 
     // GANTI DENGAN URL WEBHOOK N8N "REQUEST PICKUP" ANDA
-    const WEBHOOK_PICKUP_URL = 'https://earnestine-fruitful-arla.ngrok-free.dev/webhook-test/request-pickup-biteship';
+    const WEBHOOK_PICKUP_URL = 'https://earnestine-fruitful-arla.ngrok-free.dev/webhook/request-pickup-biteship';
 
     try {
         // Beri efek loading di layar
