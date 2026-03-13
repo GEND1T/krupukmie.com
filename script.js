@@ -170,6 +170,51 @@ if (storeHero) {
     
     let currentBasePrice = 15000; 
 
+    // ==========================================
+    // FITUR HARGA DINAMIS DARI SUPABASE
+    // ==========================================
+    // Catatan: Kunci Anonim ini AMAN ditaruh di sini karena tabel products hanya bisa dibaca (READ-ONLY) oleh publik
+    const SUPABASE_DB_URL = 'https://uomqqcntuniodhfbpxvh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvbXFxY250dW5pb2RoZmJweHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4MDY5NTUsImV4cCI6MjA4ODM4Mjk1NX0.yO1lV5Qw-0U0HSRKlkASaL2Ol9qi6UJqzXfJFxKT7c0';
+
+    async function syncProductPrices() {
+        try {
+            const response = await fetch(`${SUPABASE_DB_URL}/rest/v1/products?select=*&is_active=eq.true`, {
+                headers: { 'apikey': SUPABASE_ANON_KEY }
+            });
+            const products = await response.json();
+
+            // Cocokkan harga dari database dengan tombol radio di HTML
+           // Cocokkan harga dari database dengan tombol radio di HTML
+           products.forEach(prod => {
+            const radio = document.querySelector(`input[name="ukuran"][value="${prod.variant}"]`);
+            
+            if (radio) {
+                // 1. Update nilai tersembunyi untuk mesin kalkulator
+                radio.setAttribute('data-price', prod.price);
+                
+                // 2. KECERDASAN VISUAL: Cari elemen <span class="price"> di dalam label yang sama
+                const priceLabel = radio.closest('.variant-card').querySelector('.price');
+                if (priceLabel) {
+                    // Timpa teks lama dengan harga baru menggunakan format Rupiah
+                    priceLabel.textContent = formatRupiah(prod.price);
+                }
+            }
+        });
+            // Update harga utama di layar berdasarkan varian yang sedang terpilih
+            const activeRadio = document.querySelector('input[name="ukuran"]:checked');
+            if (activeRadio) {
+                currentBasePrice = parseInt(activeRadio.getAttribute('data-price'));
+                updateTotalPrice();
+            }
+        } catch (error) {
+            console.error("Mode Offline: Gagal menarik harga terbaru, menggunakan harga standar.");
+        }
+    }
+
+    // Panggil fungsi sinkronisasi harga secara diam-diam saat halaman dimuat
+    syncProductPrices();
+
     function formatRupiah(number) {
         return new Intl.NumberFormat('id-ID', { 
             style: 'currency', currency: 'IDR', minimumFractionDigits: 0 
@@ -548,7 +593,6 @@ if (checkoutPage) {
 
 
     // --- C & D. LOGIKA PENCARIAN ALAMAT & LOCAL STORAGE CACHE ---
-    const BITESHIP_API_KEY = 'biteship_test.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoia3J1cHVrbWllLiIsInVzZXJJZCI6IjY5YWQzOTdmMjZiMDY3YzIzZDIxNGQ5MiIsImlhdCI6MTc3Mjk2MDM2OX0.VMLO13dSbYr-MZSQHvwzmBrDuE483zdazn2KCDwi-_Y';
     
     const btnTriggerLocationSheet = document.getElementById('btnTriggerLocationSheet');
     const textSelectedLocation = document.getElementById('textSelectedLocation');
@@ -765,13 +809,14 @@ if (checkoutPage) {
         searchTimeout = setTimeout(() => { searchBiteshipDirectly(query); }, 600);
     });
 
-    // D. FUNGSI FINAL: JEMBATAN KE BITESHIP
+    // D. FUNGSI FINAL: JEMBATAN KE BITESHIP (VIA N8N PROXY)
     async function searchBiteshipDirectly(query) {
         dynamicRegionList.innerHTML = '<div style="padding: 20px; text-align: center; color: #6B7280;"><i class="fas fa-spinner fa-spin"></i> Memverifikasi dengan Kurir...</div>';
         try {
-            const response = await fetch(`https://api.biteship.com/v1/maps/areas?countries=ID&input=${encodeURIComponent(query)}`, {
-                headers: { 'Authorization': BITESHIP_API_KEY }
-            });
+            // PERUBAHAN DI SINI: Tembak ke n8n, bukan ke Biteship langsung
+            // Header Authorization sudah dibuang!
+            const response = await fetch(`https://earnestine-fruitful-arla.ngrok-free.dev/webhook/proxy-biteship-areas?input=${encodeURIComponent(query)}`);
+            
             const data = await response.json();
             
             if (data.success && data.areas.length > 0) {
@@ -1011,16 +1056,18 @@ if (checkoutPage) {
         }
 
         try {
-            const response = await fetch("https://api.biteship.com/v1/rates/couriers", {
+            // GANTI DENGAN URL NGROK / N8N ANDA
+            const response = await fetch("https://earnestine-fruitful-arla.ngrok-free.dev/webhook/proxy-biteship-rates", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": BITESHIP_API_KEY
+                    "Content-Type": "application/json"
+                    // PERHATIKAN: Kita sudah membuang baris "Authorization": BITESHIP_API_KEY dari sini!
                 },
                 body: JSON.stringify(payload)
             });
 
             const data = await response.json();
+            // ... (kode bawahnya biarkan sama) ...
 
             if (data.success && data.pricing.length > 0) {
                 
@@ -1364,7 +1411,6 @@ if (checkoutPage) {
 // --- KONFIGURASI BITESHIP ---
 // CATATAN: Untuk keamanan level produksi, API Key sebaiknya tidak ditaruh di Frontend. 
 // Namun untuk tahap ini, kita gunakan langsung agar UI berfungsi.
-const BITESHIP_API_KEY = 'biteship_test.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoia3J1cHVrbWllLiIsInVzZXJJZCI6IjY5YWQzOTdmMjZiMDY3YzIzZDIxNGQ5MiIsImlhdCI6MTc3Mjk2MDM2OX0.VMLO13dSbYr-MZSQHvwzmBrDuE483zdazn2KCDwi-_Y'; 
 
 // --- 1. LOCAL STORAGE (MENYIMPAN DATA SAAT REFRESH) ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -1403,13 +1449,13 @@ inputSearch.addEventListener('input', function() {
     }, 500);
 });
 
-// Fungsi memanggil API Maps Biteship
+
+
+// Fungsi memanggil API Maps Biteship VIA N8N
 async function fetchBiteshipAreas(query) {
     try {
-        const response = await fetch(`https://api.biteship.com/v1/maps/areas?countries=ID&input=${encodeURIComponent(query)}`, {
-            method: 'GET',
-            headers: { 'Authorization': BITESHIP_API_KEY }
-        });
+        // GANTI DENGAN URL NGROK / N8N ANDA
+        const response = await fetch(`https://earnestine-fruitful-arla.ngrok-free.dev/webhook/proxy-biteship-areas?input=${encodeURIComponent(query)}`);
         
         const data = await response.json();
         

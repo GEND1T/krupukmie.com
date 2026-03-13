@@ -1,4 +1,24 @@
+// ==========================================
+// 0. SISTEM KEAMANAN (AUTH GUARD)
+// ==========================================
+// Cek apakah ada token login di brankas browser
+const adminToken = sessionStorage.getItem('krupukmie_admin_token');
 
+if (!adminToken) {
+    // Jika tidak ada token (belum login), tendang kembali ke halaman login!
+    alert("Akses Ditolak! Silakan login terlebih dahulu.");
+    window.location.href = 'login.html';
+    // Hentikan pengeksekusian kode di bawahnya
+    throw new Error("Akses dihentikan karena tidak ada sesi login.");
+}
+
+// Fungsi Logout
+function logoutAdmin() {
+    if (confirm("Apakah Anda yakin ingin keluar dari Seller Dashboard?")) {
+        sessionStorage.removeItem('krupukmie_admin_token');
+        window.location.href = 'login.html';
+    }
+}
 
 // ==========================================
 // LOGIKA UI MENU MOBILE (PWA)
@@ -60,8 +80,8 @@ async function fetchOrdersFromSupabase() {
 
     try {
         const headers = {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`
+            'apikey': SUPABASE_KEY, // Papan nama proyek (tetap pakai kunci anonim)
+            'Authorization': `Bearer ${adminToken}` // PASPOR RAHASIA: Gunakan token dari hasil Login!
         };
 
         // KECERDASAN BARU: Tarik data dari tabel 'orders' DAN 'order_items' secara bersamaan
@@ -244,7 +264,7 @@ async function updateOrderStatusInSupabase(dbId, newStatus, invoiceLabel) {
             method: 'PATCH',
             headers: {
                 'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Authorization': `Bearer ${adminToken}`, // PASPOR RAHASIA DARI LOGIN
                 'Content-Type': 'application/json',
                 'Prefer': 'return=minimal'
             },
