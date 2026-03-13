@@ -904,7 +904,7 @@ if (checkoutPage) {
                 dynamicRegionList.innerHTML = '<div style="padding: 20px; text-align: center; color: #EF4444;">Area ini belum terjangkau kurir.</div>';
             }
         } catch (error) {
-            dynamicRegionList.innerHTML = '<div style="padding: 20px; text-align: center; color: #EF4444;">Koneksi terputus.</div>';
+            dynamicRegionList.innerHTML = '<div style="padding: 20px; text-align: center; color: #EF4444;">Koneksi terputus cik.</div>';
         }
     }
     // Panggil Provinsi saat sheet lokasi pertama kali dibuka
