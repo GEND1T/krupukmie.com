@@ -67,26 +67,47 @@ if (formContact) {
             source: 'Landing Page Contact Form'
         };
 
-        const webhookUrl = 'URL_WEBHOOK_N8N_ANDA_DISINI'; 
+        const webhookUrl = 'https://earnestine-fruitful-arla.ngrok-free.dev/webhook/contact-form'; 
 
         // Kirim request (Fetch API)
         fetch(webhookUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true' // <--- INI WAJIB ADA!
+            },
             body: JSON.stringify(payload)
         })
+
         .then(response => {
             if (response.ok) {
-                alert('Pesan berhasil terkirim! Tim kami akan segera menghubungi Anda.');
+                // ALERT SUKSES YANG CANTIK
+                Swal.fire({
+                    title: 'Terkirim!',
+                    text: 'Pesan berhasil terkirim! Tim kami akan segera menghubungi Anda.',
+                    icon: 'success',
+                    confirmButtonColor: '#10B981' // Warna hijau KrupukMie
+                });
                 formContact.reset();
             } else {
-                alert('Terjadi kesalahan pada server. Mohon coba beberapa saat lagi.');
+                // ALERT ERROR YANG CANTIK
+                Swal.fire({
+                    title: 'Oops!',
+                    text: 'Terjadi kesalahan pada server. Mohon coba beberapa saat lagi.',
+                    icon: 'error',
+                    confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+                });
             }
         })
         .catch(error => {
             console.error('Error:', error);
             // Fallback jika n8n sedang down: Arahkan ke WA manual
-            alert('Gagal mengirim pesan otomatis. Anda akan dialihkan ke WhatsApp kami.');
+            Swal.fire({
+                title: 'Oops!',
+                text: 'Gagal mengirim pesan otomatis. Anda akan dialihkan ke WhatsApp kami.',
+                icon: 'error',
+                confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+            });
             const waNumber = '6281234567890'; // Nomor WA Anda
             const waText = `Halo, nama saya ${nama}.%0A${pesan}`;
             window.open(`https://wa.me/${waNumber}?text=${waText}`, '_blank');
@@ -271,7 +292,12 @@ if (storeHero) {
         
         // Pengaman jika belum ada varian yang dipilih
         if (!checkedVariant) {
-            alert("Silakan pilih ukuran kemasan terlebih dahulu.");
+            Swal.fire({
+                title: 'Oops!',
+                text: 'Silakan pilih ukuran kemasan terlebih dahulu.',
+                icon: 'error',
+                confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+            });
             return;
         }
 
@@ -303,7 +329,15 @@ if (storeHero) {
         localStorage.setItem('krupukCart', JSON.stringify(cart));
         updateCartBadge(); // Panggil fungsi update angka keranjang
         renderMiniCart(); // <--- Tambahkan baris ini
-        alert(`Berhasil! ${qty} bungkus (ukuran ${selectedVariant}) ditambahkan ke keranjang.`);
+        // Popup cantik tanpa tombol (otomatis hilang dalam 1.5 detik)
+        Swal.fire({
+            position: "center",
+            icon: "success",
+            title: "Masuk Keranjang!",
+            text: `${qty} bungkus (ukuran ${selectedVariant}) ditambahkan.`,
+            showConfirmButton: false,
+            timer: 1500
+        });
     }
 
     if (btnOrderDesk) btnOrderDesk.addEventListener('click', addToCart);
@@ -417,14 +451,62 @@ if (storeHero) {
                     cart[itemIndex].qty -= 1;
                     cart[itemIndex].total = cart[itemIndex].qty * cart[itemIndex].price;
                 } else {
-                    if (confirm('Hapus produk ini dari keranjang?')) {
-                        cart.splice(itemIndex, 1);
-                    }
+                    Swal.fire({
+                        title: 'Hapus Produk?',
+                        text: "Apakah Anda yakin ingin menghapus KrupukMie ini dari keranjang?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#EF4444', // Merah (Hapus)
+                        cancelButtonColor: '#6B7280',  // Abu-abu (Batal)
+                        confirmButtonText: 'Ya, Hapus!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        // Jika pelanggan klik "Ya, Hapus!"
+                        if (result.isConfirmed) {
+                            cart.splice(itemIndex, 1);
+                            localStorage.setItem('krupukCart', JSON.stringify(cart));
+                            renderCheckoutItems();
+                            updateGrandTotal();
+                            
+                            // Opsional: Pesan kecil produk berhasil dihapus
+                            Swal.fire({
+                                title: 'Terhapus!',
+                                text: 'Produk telah dikeluarkan dari keranjang.',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1000
+                            });
+                        }
+                    });
                 }
             } else if (e.target.classList.contains('btn-remove-item')) {
-                if (confirm('Hapus produk ini dari keranjang?')) {
-                    cart.splice(itemIndex, 1);
-                }
+                Swal.fire({
+                    title: 'Hapus Produk?',
+                    text: "Apakah Anda yakin ingin menghapus KrupukMie ini dari keranjang?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#EF4444', // Merah (Hapus)
+                    cancelButtonColor: '#6B7280',  // Abu-abu (Batal)
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    // Jika pelanggan klik "Ya, Hapus!"
+                    if (result.isConfirmed) {
+                        cart.splice(itemIndex, 1);
+                        localStorage.setItem('krupukCart', JSON.stringify(cart));
+                        renderCheckoutItems();
+                        updateGrandTotal();
+                        
+                        // Opsional: Pesan kecil produk berhasil dihapus
+                        Swal.fire({
+                            title: 'Terhapus!',
+                            text: 'Produk telah dikeluarkan dari keranjang.',
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1000
+                        });
+                    }
+                });
             } else {
                 return;
             }
@@ -489,7 +571,12 @@ if (checkoutPage) {
         let cart = JSON.parse(localStorage.getItem('krupukCart')) || [];
 
         if (cart.length === 0) {
-            alert('Keranjang kosong! Mengarahkan kembali ke toko.');
+            Swal.fire({
+                title: 'Oops!',
+                text: 'Keranjang kosong! Mengarahkan kembali ke toko.',
+                icon: 'error',
+                confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+            });
             window.location.href = 'store.html';
             return;
         }
@@ -552,17 +639,64 @@ if (checkoutPage) {
                     cart[itemIndex].total = cart[itemIndex].qty * cart[itemIndex].price;
                     isChanged = true;
                 } else {
-                    if (confirm('Hapus produk ini dari pesanan?')) {
-                        cart.splice(itemIndex, 1);
-                        isChanged = true;
-                    }
+                    Swal.fire({
+                        title: 'Hapus Produk?',
+                        text: "Apakah Anda yakin ingin menghapus KrupukMie ini dari pesanan?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#EF4444', // Merah (Hapus)
+                        cancelButtonColor: '#6B7280',  // Abu-abu (Batal)
+                        confirmButtonText: 'Ya, Hapus!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        // Jika pelanggan klik "Ya, Hapus!"
+                        if (result.isConfirmed) {
+                            cart.splice(itemIndex, 1);
+                            localStorage.setItem('krupukCart', JSON.stringify(cart));
+                            renderCheckoutItems();
+                            updateGrandTotal();
+                            
+                            // Opsional: Pesan kecil produk berhasil dihapus
+                            Swal.fire({
+                                title: 'Terhapus!',
+                                text: 'Produk telah dikeluarkan dari keranjang.',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1000
+                            });
+                        }
+                    });
                 }
                 
             } else if (e.target.closest('.btn-remove-checkout')) {
-                if (confirm('Hapus produk ini dari pesanan?')) {
-                    cart.splice(itemIndex, 1);
-                    isChanged = true;
-                }
+                // MUNCULKAN POPUP KONFIRMASI YANG ELEGAN
+                Swal.fire({
+                    title: 'Hapus Produk?',
+                    text: "Apakah Anda yakin ingin menghapus KrupukMie ini dari pesanan?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#EF4444', // Merah (Hapus)
+                    cancelButtonColor: '#6B7280',  // Abu-abu (Batal)
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    // Jika pelanggan klik "Ya, Hapus!"
+                    if (result.isConfirmed) {
+                        cart.splice(itemIndex, 1);
+                        localStorage.setItem('krupukCart', JSON.stringify(cart));
+                        renderCheckoutItems();
+                        updateGrandTotal();
+                        
+                        // Opsional: Pesan kecil produk berhasil dihapus
+                        Swal.fire({
+                            title: 'Terhapus!',
+                            text: 'Produk telah dikeluarkan dari keranjang.',
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1000
+                        });
+                    }
+                });
             }
 
             // JIKA ADA PERUBAHAN JUMLAH BARANG, LAKUKAN RESET ONGKIR!
@@ -682,7 +816,12 @@ if (checkoutPage) {
     // A. FITUR GPS (REVERSE GEOCODING) + SIMPAN KOORDINAT
     btnCurrentLocation.addEventListener('click', () => {
         if (!navigator.geolocation) {
-            alert("Browser Anda tidak mendukung fitur lokasi GPS.");
+            Swal.fire({
+                title: 'Oops!',
+                text: 'Browser Anda tidak mendukung fitur lokasi GPS.',
+                icon: 'error',
+                confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+            });
             return;
         }
 
@@ -710,10 +849,20 @@ if (checkoutPage) {
                         inputSearchLocation.value = queryForBiteship; 
                         searchBiteshipDirectly(queryForBiteship);     
                     } else {
-                        alert("Gagal mendeteksi area Anda. Silakan cari manual.");
+                        Swal.fire({
+                            title: 'Oops!',
+                            text: 'Gagal mendeteksi area Anda. Silakan cari manual.',
+                            icon: 'error',
+                            confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+                        });
                     }
                 } catch (error) {
-                    alert("Koneksi gagal saat menerjemahkan lokasi.");
+                    Swal.fire({
+                        title: 'Oops!',
+                        text: 'Koneksi gagal saat mencari lokasi.',
+                        icon: 'error',
+                        confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+                    });
                 } finally {
                     resetGpsButton();
                 }
@@ -721,9 +870,19 @@ if (checkoutPage) {
             (error) => {
                 resetGpsButton();
                 if (error.code === 1) {
-                    alert("Akses Lokasi Ditolak 🔒\n\nKami butuh izin untuk menemukan Anda. Silakan klik ikon gembok 🔒 di pojok kiri atas browser, lalu pilih 'Izinkan Lokasi', dan muat ulang halaman.");
+                    Swal.fire({
+                        title: 'Oops!',
+                        text: "Akses Lokasi Ditolak 🔒\n\nKami butuh izin untuk menemukan Anda. Silakan klik ikon gembok 🔒 di pojok kiri atas browser, lalu pilih 'Izinkan Lokasi', dan muat ulang halaman.",
+                        icon: 'error',
+                        confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+                    });
                 } else {
-                    alert("Sinyal GPS lemah. Silakan ketik nama kecamatan Anda.");
+                    Swal.fire({
+                        title: 'Oops!',
+                        text: "Sinyal GPS lemah. Silakan ketik nama kecamatan Anda.",
+                        icon: 'error',
+                        confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+                    });
                 }
             },
             { enableHighAccuracy: true, timeout: 10000 }
@@ -904,7 +1063,7 @@ if (checkoutPage) {
                 dynamicRegionList.innerHTML = '<div style="padding: 20px; text-align: center; color: #EF4444;">Area ini belum terjangkau kurir.</div>';
             }
         } catch (error) {
-            dynamicRegionList.innerHTML = '<div style="padding: 20px; text-align: center; color: #EF4444;">Koneksi terputus cik.</div>';
+            dynamicRegionList.innerHTML = '<div style="padding: 20px; text-align: center; color: #EF4444;">Koneksi terputus.</div>';
         }
     }
     // Panggil Provinsi saat sheet lokasi pertama kali dibuka
@@ -929,7 +1088,14 @@ if (checkoutPage) {
         const lon = document.getElementById('hiddenLon').value;
 
         if (!fullname || !phone || !areaId || !addressDetail) {
-            alert('Mohon lengkapi data, termasuk memilih Kecamatan dari fitur pencarian.');
+            Swal.fire({
+                title: 'Oops!',
+                text: "Mohon lengkapi data, termasuk memilih Kecamatan dari fitur pencarian.",
+                icon: 'error',
+                confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+            });
+        
+            
             return;
         }
 
@@ -1327,14 +1493,24 @@ if (checkoutPage) {
     if (btnPlaceOrder) {
         btnPlaceOrder.addEventListener('click', async function() {
             if (ongkirAmount === 0) {
-                alert('Mohon lengkapi Alamat dan pilih Opsi Pengiriman terlebih dahulu.');
+                Swal.fire({
+                    title: 'Oops!',
+                    text: 'Mohon lengkapi Alamat dan pilih Opsi Pengiriman terlebih dahulu.',
+                    icon: 'error',
+                    confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+                });
                 openSheet('sheetAddress'); 
                 return;
             }
         
             const paymentSelected = document.querySelector('input[name="payment"]:checked');
             if (!paymentSelected) {
-                alert('Mohon pilih metode pembayaran.');
+                Swal.fire({
+                    title: 'Oops!',
+                    text: 'Mohon pilih metode pembayaran.',
+                    icon: 'error',
+                    confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+                });
                 openSheet('sheetPayment');
                 return;
             }
@@ -1413,26 +1589,56 @@ if (checkoutPage) {
                 // 3. Panggil Pop-up Midtrans (Dipastikan window.snap sudah ter-load)
                 window.snap.pay(snapToken, {
                     onSuccess: function(result){
-                        alert("Pembayaran Berhasil! Pesanan sedang diproses.");
+                        Swal.fire({
+                            position: "center",
+                            icon: "success",
+                            text: 'Pembayaran Berhasil! Pesanan sedang diproses.',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
                         localStorage.removeItem('krupukCart'); 
                         window.location.reload(); 
                     },
                     onPending: function(result){
-                        alert("Menunggu pembayaran Anda. Silakan cek detail di halaman selanjutnya.");
+                        Swal.fire({
+                            position: "center",
+                            icon: "success",
+                            text: 'Menunggu pembayaran Anda. Silakan cek detail di halaman selanjutnya.',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
                         localStorage.removeItem('krupukCart');
                         window.location.reload(); 
                     },
                     onError: function(result){
-                        alert("Pembayaran gagal! Silakan coba lagi.");
+                        Swal.fire({
+                            title: 'Oops!',
+                            text: 'Pembayaran gagal! Silakan coba lagi.',
+                            icon: 'error',
+                            confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+                        });
+
                     },
                     onClose: function(){
-                        alert('Anda menutup layar pembayaran sebelum menyelesaikannya.');
+                        
+                        Swal.fire({
+                            title: 'Oops!',
+                            text: 'Anda menutup layar pembayaran sebelum menyelesaikannya.',
+                            icon: 'error',
+                            confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+                        });
                     }
+
                 });
             
             } catch (error) {
                 console.error('Error Checkout:', error);
-                alert('Terjadi kesalahan koneksi ke server. Pastikan Webhook n8n sedang aktif (Listen for Test Event).');
+                Swal.fire({
+                    title: 'Oops!',
+                    text: 'Terjadi kesalahan pada server. Mohon coba beberapa saat lagi.',
+                    icon: 'error',
+                    confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+                });
             } finally {
                 btnPlaceOrder.innerHTML = originalBtnText;
                 btnPlaceOrder.disabled = false;

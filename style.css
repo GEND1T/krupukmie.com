@@ -2216,3 +2216,57 @@ section {
         padding: 0;
     }
 }
+
+/* =========================================
+   CUSTOM CSS UNTUK SWEETALERT2 (POPUP)
+   ========================================= */
+
+/* Mengubah bentuk kotak utama popup */
+.swal2-popup {
+    border-radius: 16px !important; /* Ujung lebih melengkung modern */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important; /* Samakan dengan font website */
+    padding: 2em 1.5em !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important; /* Bayangan lebih lembut dan elegan */
+}
+
+/* Mengatur gaya teks judul utama */
+.swal2-title {
+    color: #1F2937 !important; /* Abu-abu gelap elegan */
+    font-size: 1.4rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 0.5em !important;
+}
+
+/* Mengatur gaya teks deskripsi/pesan */
+.swal2-html-container {
+    color: #6B7280 !important; /* Abu-abu sedang agar mudah dibaca */
+    font-size: 1.15rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Merombak desain tombol aksi (Ya / Batal) */
+.swal2-actions button {
+    border-radius: 8px !important; /* Mengikuti gaya tombol KrupukMie */
+    font-weight: 600 !important;
+    padding: 10px 24px !important;
+    font-size: 0.95rem !important;
+    transition: all 0.2s ease-in-out !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+}
+
+/* Efek hover saat kursor diarahkan ke tombol */
+.swal2-actions button:hover {
+    transform: translateY(-2px); /* Efek tombol terangkat sedikit */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+}
+
+/* Memberi jarak ekstra antara tombol konfirmasi dan batal */
+.swal2-cancel {
+    margin-right: 10px !important;
+}
+
+/* Mengubah ukuran ikon animasi agar lebih proporsional */
+.swal2-icon {
+    margin: 0 auto 1.5em auto !important;
+    transform: scale(0.9) !important;
+}
