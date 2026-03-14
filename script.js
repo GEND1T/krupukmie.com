@@ -1566,7 +1566,7 @@ if (checkoutPage) {
 
             try {
                 // 1. Tembak ke Webhook n8n Anda
-                const webhookUrl = 'https://n8n-brfcubpy6mnf.jkt2.sumopod.my.id/webhook-test/proses-checkout'; 
+                const webhookUrl = 'https://n8n-brfcubpy6mnf.jkt2.sumopod.my.id/webhook/proses-checkout'; 
                 
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
