@@ -1563,11 +1563,10 @@ if (checkoutPage) {
             const originalBtnText = btnPlaceOrder.innerHTML;
             btnPlaceOrder.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
             btnPlaceOrder.disabled = true;
-        
+
             try {
                 // 1. Tembak ke Webhook n8n Anda
-                // Pastikan URL ini aktif dan dalam mode "Listen for Test Event"
-                const webhookUrl = 'https://n8n-brfcubpy6mnf.jkt2.sumopod.my.id/webhook/proses-checkout'; 
+                const webhookUrl = 'https://n8n-brfcubpy6mnf.jkt2.sumopod.my.id/webhook-test/proses-checkout'; 
                 
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
@@ -1578,59 +1577,41 @@ if (checkoutPage) {
                // 2. Tangkap balasan dari n8n
                const data = await response.json(); 
                 
-               // PENGAMAN JITU: Cek apakah n8n membalas berupa Array [ {token:...} ] atau Object {token:...}
-               const snapToken = Array.isArray(data) ? data[0].token : data.token;
+               // 3. Ambil link pembayaran Mayar dari n8n
+               // Asumsi n8n Anda nanti akan di-setting untuk membalas JSON berisi "payment_link"
+               const paymentLink = Array.isArray(data) ? data[0].payment_link : data.payment_link;
             
-               // Periksa apakah token benar-benar ada
-               if (!snapToken) {
+               // Periksa apakah link benar-benar ada
+               if (paymentLink) {
+                   
+                   // 4. MUNCULKAN HALAMAN MAYAR DI DALAM POPUP SWEETALERT2
+                   Swal.fire({
+                       title: '<span style="font-size: 1.2rem;">Selesaikan Pembayaran</span>',
+                       html: `<iframe src="${paymentLink}" width="100%" height="600px" style="border:none; border-radius: 8px; background-color: #f9fafb;"></iframe>`,
+                       showConfirmButton: false, // Sembunyikan tombol OK
+                       showCloseButton: true,    // Tampilkan tombol X
+                       width: '500px',
+                       padding: '1em',
+                       allowOutsideClick: false, // Mencegah tertutup jika terklik di luar kotak
+                       didClose: () => {
+                           // Aksi ketika pembeli menekan tombol X
+                           Swal.fire({
+                               title: 'Menunggu Pembayaran',
+                               text: 'Pesanan Anda sudah tersimpan. Silakan cek email/WA Anda untuk link pembayaran.',
+                               icon: 'info',
+                               confirmButtonColor: '#10B981'
+                           }).then(() => {
+                               // Bersihkan keranjang dan kembali ke beranda
+                               localStorage.removeItem('krupukCart');
+                               window.location.href = 'index.html';
+                           });
+                       }
+                   });
+
+               } else {
                    console.error("Respons n8n:", data);
-                   throw new Error("Gagal mendapatkan Token dari server n8n.");
+                   throw new Error("Gagal mendapatkan Link Pembayaran dari server n8n.");
                }
-               
-                // 3. Panggil Pop-up Midtrans (Dipastikan window.snap sudah ter-load)
-                window.snap.pay(snapToken, {
-                    onSuccess: function(result){
-                        Swal.fire({
-                            position: "center",
-                            icon: "success",
-                            text: 'Pembayaran Berhasil! Pesanan sedang diproses.',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                        localStorage.removeItem('krupukCart'); 
-                        window.location.reload(); 
-                    },
-                    onPending: function(result){
-                        Swal.fire({
-                            position: "center",
-                            icon: "success",
-                            text: 'Menunggu pembayaran Anda. Silakan cek detail di halaman selanjutnya.',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                        localStorage.removeItem('krupukCart');
-                        window.location.reload(); 
-                    },
-                    onError: function(result){
-                        Swal.fire({
-                            title: 'Oops!',
-                            text: 'Pembayaran gagal! Silakan coba lagi.',
-                            icon: 'error',
-                            confirmButtonColor: '#EF4444' // Warna merah KrupukMie
-                        });
-
-                    },
-                    onClose: function(){
-                        
-                        Swal.fire({
-                            title: 'Oops!',
-                            text: 'Anda menutup layar pembayaran sebelum menyelesaikannya.',
-                            icon: 'error',
-                            confirmButtonColor: '#EF4444' // Warna merah KrupukMie
-                        });
-                    }
-
-                });
             
             } catch (error) {
                 console.error('Error Checkout:', error);
@@ -1644,6 +1625,87 @@ if (checkoutPage) {
                 btnPlaceOrder.innerHTML = originalBtnText;
                 btnPlaceOrder.disabled = false;
             }
+        
+            // try {
+            //     // 1. Tembak ke Webhook n8n Anda
+            //     // Pastikan URL ini aktif dan dalam mode "Listen for Test Event"
+            //     const webhookUrl = 'https://n8n-brfcubpy6mnf.jkt2.sumopod.my.id/webhook/proses-checkout'; 
+                
+            //     const response = await fetch(webhookUrl, {
+            //         method: 'POST',
+            //         headers: { 'Content-Type': 'application/json' },
+            //         body: JSON.stringify(orderPayload)
+            //     });
+                
+            //    // 2. Tangkap balasan dari n8n
+            //    const data = await response.json(); 
+                
+            //    // PENGAMAN JITU: Cek apakah n8n membalas berupa Array [ {token:...} ] atau Object {token:...}
+            //    const snapToken = Array.isArray(data) ? data[0].token : data.token;
+            
+            //    // Periksa apakah token benar-benar ada
+            //    if (!snapToken) {
+            //        console.error("Respons n8n:", data);
+            //        throw new Error("Gagal mendapatkan Token dari server n8n.");
+            //    }
+               
+            //     // 3. Panggil Pop-up Midtrans (Dipastikan window.snap sudah ter-load)
+            //     window.snap.pay(snapToken, {
+            //         onSuccess: function(result){
+            //             Swal.fire({
+            //                 position: "center",
+            //                 icon: "success",
+            //                 text: 'Pembayaran Berhasil! Pesanan sedang diproses.',
+            //                 showConfirmButton: false,
+            //                 timer: 1500
+            //             });
+            //             localStorage.removeItem('krupukCart'); 
+            //             window.location.reload(); 
+            //         },
+            //         onPending: function(result){
+            //             Swal.fire({
+            //                 position: "center",
+            //                 icon: "success",
+            //                 text: 'Menunggu pembayaran Anda. Silakan cek detail di halaman selanjutnya.',
+            //                 showConfirmButton: false,
+            //                 timer: 1500
+            //             });
+            //             localStorage.removeItem('krupukCart');
+            //             window.location.reload(); 
+            //         },
+            //         onError: function(result){
+            //             Swal.fire({
+            //                 title: 'Oops!',
+            //                 text: 'Pembayaran gagal! Silakan coba lagi.',
+            //                 icon: 'error',
+            //                 confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+            //             });
+
+            //         },
+            //         onClose: function(){
+                        
+            //             Swal.fire({
+            //                 title: 'Oops!',
+            //                 text: 'Anda menutup layar pembayaran sebelum menyelesaikannya.',
+            //                 icon: 'error',
+            //                 confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+            //             });
+            //         }
+
+            //     });
+            
+            // } catch (error) {
+            //     console.error('Error Checkout:', error);
+            //     Swal.fire({
+            //         title: 'Oops!',
+            //         text: 'Terjadi kesalahan pada server. Mohon coba beberapa saat lagi.',
+            //         icon: 'error',
+            //         confirmButtonColor: '#EF4444' // Warna merah KrupukMie
+            //     });
+            // } finally {
+            //     btnPlaceOrder.innerHTML = originalBtnText;
+            //     btnPlaceOrder.disabled = false;
+            // }
         });
     }
 
