@@ -212,7 +212,7 @@ function renderOrders() {
         if (order.status === 'paid') {
             actionButtons = `<button class="btn-action btn-confirm" onclick="requestPickupN8n('${order.invoice}')" style="background:#8B5CF6; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;"><i class="fas fa-truck-loading"></i> Proses & Panggil Kurir</button>`;
         } else if (order.status === 'picking_up' || order.status === 'dropping_off') {
-            actionButtons = `<button class="btn-action btn-track" onclick="window.open('https://biteship.com/track/${order.resi}', '_blank')" style="background:#3B82F6; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;"><i class="fas fa-map-marked-alt"></i> Lacak Paket</button>`;
+            actionButtons = `<button class="btn-action btn-track" onclick="window.open('https://biteship.com/v1/trackings/${order.resi}', '_blank')" style="background:#3B82F6; color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;"><i class="fas fa-map-marked-alt"></i> Lacak Paket</button>`;
         } else if (order.status === 'on_hold') {
             actionButtons = `<button class="btn-action btn-danger" style="background:#EF4444; color:white; border:none; padding:8px 15px; border-radius:6px;"><i class="fas fa-exclamation-triangle"></i> Cek Kendala</button>`;
         }
