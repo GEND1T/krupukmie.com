@@ -17,7 +17,7 @@ KrupukMie Hub adalah prototipe *Headless E-Commerce* dan *Order Management Syste
 ## 🚀 Cara Akses Dashboard Admin/Penjualan
 Untuk melihat fitur *Order Management System* (OMS) secara langsung dan melakukan simulasi memproses pesanan (seperti memanggil kurir dan mengelola stok), Anda dapat masuk ke Seller Dashboard KrupukMie.
 
-1. Buka tautan Login Admin: `https://https://krupukmie.web.id/login.html` 
+1. Buka tautan Login Admin: `https://krupukmie.web.id/login.html` 
 2. Gunakan kredensial demo berikut untuk masuk:
    * **Username / Email:** `admin@mayar.ic`
    * **Password:** `admin`
