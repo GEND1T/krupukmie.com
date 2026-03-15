@@ -749,7 +749,6 @@ if (checkoutPage) {
     // Event Listener untuk Buka Sheet
     document.getElementById('btnOpenAddress').addEventListener('click', () => openSheet('sheetAddress'));
     document.getElementById('btnOpenShipping').addEventListener('click', () => openSheet('sheetShipping'));
-    document.getElementById('btnOpenPayment').addEventListener('click', () => openSheet('sheetPayment'));
 
     // Event Listener untuk Tutup Sheet (Tombol X & Overlay)
     document.querySelectorAll('.close-sheet-btn').forEach(btn => {
@@ -1428,57 +1427,18 @@ if (checkoutPage) {
         }
     }
 
-    // --- F. LOGIKA METODE PEMBAYARAN & ADMIN DINAMIS ---
-    const paymentRadios = document.querySelectorAll('input[name="payment"]');
-    paymentRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            // 1. Update Teks di Layar Utama
-            const paymentName = this.nextElementSibling.querySelector('.kurir-name').textContent;
-            document.getElementById('displayPayment').textContent = paymentName;
-            
-            // 2. LOGIKA PERHITUNGAN BIAYA ADMIN
-            const method = this.value;
-            
-            // Kelompok Virtual Account (BCA, BNI, BRI, Mandiri, Permata) -> Rp 4.000 flat
-            if (['bca_va', 'bni_va', 'bri_va', 'permata_va', 'echannel'].includes(method)) {
-                adminFee = 4000;
-            } 
-            // Kelompok E-Wallet / QRIS -> Rp 1.500 flat
-            else if (['gopay', 'qris', 'shopeepay'].includes(method)) {
-                adminFee = 1500; 
-            } 
-            // Kelompok Gerai Retail (Indomaret, Alfamart) -> Midtrans biasanya potong Rp 5.000
-            else if (['indomaret', 'alfamart'].includes(method)) {
-                adminFee = 5000;
-            }
-            // Kelompok Kartu Kredit (Opsional jika Anda aktifkan nanti) -> Biasanya 3%
-            else if (method === 'credit_card') {
-                // Tampilkan sebagai persentase dari subtotal
-                adminFee = Math.round((subtotalAmount + ongkirAmount) * 0.03); 
-            }
-            // Default keamanan
-            else {
-                adminFee = 2500;
-            }
+   // --- G. FUNGSI UPDATE GRAND TOTAL ---
+   function updateGrandTotal() {
+        const grandTotal = subtotalAmount + ongkirAmount; // Admin diserahkan ke Mayar
 
-            // 3. Update Angka di Rincian Pembayaran
-            updateGrandTotal();
-            
-            // 4. Tutup sheet dengan efek smooth
-            setTimeout(closeAllSheets, 300);
-        });
-    });
-
-
-    // --- G. FUNGSI UPDATE GRAND TOTAL ---
-    function updateGrandTotal() {
-        const grandTotal = subtotalAmount + ongkirAmount + adminFee;
-        
         // Update rincian di bawah
         document.getElementById('checkoutOngkir').textContent = formatRupiahCheckout(ongkirAmount);
-        document.getElementById('checkoutAdmin').textContent = formatRupiahCheckout(adminFee);
-        
-        // Update Sticky Footer (Tombol Buat Pesanan)
+
+        // Sembunyikan baris biaya admin di layar (karena nanti munculnya di halaman Mayar)
+        const adminElement = document.getElementById('checkoutAdmin');
+        if (adminElement) adminElement.parentElement.style.display = 'none';
+
+        // Update Sticky Footer
         document.getElementById('checkoutGrandTotal').textContent = formatRupiahCheckout(grandTotal);
     }
 
@@ -1502,31 +1462,14 @@ if (checkoutPage) {
                 openSheet('sheetAddress'); 
                 return;
             }
-        
-            const paymentSelected = document.querySelector('input[name="payment"]:checked');
-            if (!paymentSelected) {
-                Swal.fire({
-                    title: 'Oops!',
-                    text: 'Mohon pilih metode pembayaran.',
-                    icon: 'error',
-                    confirmButtonColor: '#EF4444' // Warna merah KrupukMie
-                });
-                openSheet('sheetPayment');
-                return;
-            }
-            
-                // ... (kode validasi ongkir & payment sebelumnya) ...
-
             let cart = JSON.parse(localStorage.getItem('krupukCart')) || [];
             
             // ==========================================
             // TARIK DATA ALAMAT DARI CACHE BROWSER
             // ==========================================
             const savedAddress = JSON.parse(localStorage.getItem('krupukmie_user_address')) || {};
-
             const safeSubtotal = cart.reduce((total, item) => total + (item.price * item.qty), 0);
-            const adminFee = 5000;
-            const safeGrandTotal = safeSubtotal + ongkirAmount + adminFee;
+            const safeGrandTotal = safeSubtotal + ongkirAmount; // Admin fee dihapus
 
             const courierChoice = document.getElementById('displayShipping').innerText.replace(/\n/g, ' - ');
             const invoiceNumber = 'INV-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
@@ -1551,10 +1494,10 @@ if (checkoutPage) {
                     courier: courierChoice || (document.querySelector('input[name="kurirRadio"]:checked') ? document.querySelector('input[name="kurirRadio"]:checked').value : 'Kurir Standar'),
                     cost: ongkirAmount
                 },
-                payment_method: paymentSelected.value,
+                payment_method: 'mayar_gateway', // Hardcode saja karena dipilihnya nanti di Mayar
                 summary: {
                     subtotal: safeSubtotal,
-                    admin_fee: adminFee,
+                    admin_fee: 0, // Jadikan 0 agar harga sinkron
                     grand_total: safeGrandTotal
                 }
             };
@@ -1689,7 +1632,7 @@ if (checkoutPage) {
             //                 text: 'Anda menutup layar pembayaran sebelum menyelesaikannya.',
             //                 icon: 'error',
             //                 confirmButtonColor: '#EF4444' // Warna merah KrupukMie
-            //             });
+            //             });q
             //         }
 
             //     });
